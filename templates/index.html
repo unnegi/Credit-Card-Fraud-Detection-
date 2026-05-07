@@ -1,0 +1,2545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FraudGuard | Transaction Security Platform</title>
+    <link rel="icon" href="{{ url_for('static', filename='logo.png') }}" type="image/png">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='logo.png') }}" type="image/png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #2D1B3D 0%, #8B2635 50%, #4A235A 100%);
+            min-height: 100vh;
+            padding: 20px;
+            padding-top: 80px;
+            color: #1F2937;
+            position: relative;
+            margin: 0;
+            overflow-x: hidden;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 20% 50%, rgba(212, 175, 55, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(114, 47, 55, 0.15) 0%, transparent 50%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .app-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 40px;
+            color: white;
+            flex-wrap: wrap;
+            text-align: center;
+        }
+
+        .header > div {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .header-logo {
+            height: 60px;
+            width: auto;
+            object-fit: contain;
+            filter: drop-shadow(2px 2px 8px rgba(212, 175, 55, 0.5));
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #D4AF37 0%, #F4A460 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 2px 2px 8px rgba(212, 175, 55, 0.3);
+            letter-spacing: -0.03em;
+            display: inline-block;
+            filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.4));
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.95;
+            font-weight: 400;
+            letter-spacing: 0.3px;
+        }
+
+        .card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(250, 245, 240, 0.95) 100%);
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(114, 47, 55, 0.25), 0 0 0 1px rgba(212, 175, 55, 0.1);
+            padding: 40px;
+            margin-bottom: 30px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            animation: fadeInUp 0.6s ease-out;
+            opacity: 0;
+            animation-fill-mode: forwards;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #D4AF37 0%, #F4A460 50%, #D4AF37 100%);
+            background-size: 200% 100%;
+            animation: shimmer 3s linear infinite;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card:nth-child(1) { animation-delay: 0.1s; }
+        .card:nth-child(2) { animation-delay: 0.2s; }
+        .card:nth-child(3) { animation-delay: 0.3s; }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 70px rgba(114, 47, 55, 0.3), 0 0 30px rgba(212, 175, 55, 0.2);
+            border-color: rgba(212, 175, 55, 0.4);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #722F37 0%, #8B2635 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            letter-spacing: -0.02em;
+        }
+
+        .section-title::before {
+            content: "";
+            font-size: 1.8rem;
+        }
+
+        .file-upload-area {
+            border: 3px dashed #4A5568;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            background: linear-gradient(135deg, rgba(247, 250, 252, 0.95) 0%, rgba(237, 242, 247, 0.95) 100%);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .file-upload-area:hover {
+            border-color: #D4AF37;
+            background: linear-gradient(135deg, #FFF8E7 0%, #FFE5B4 100%);
+            box-shadow: 0 4px 12px rgba(212, 175, 55, 0.2);
+        }
+
+        .file-upload-area.dragover {
+            border-color: #10B981;
+            background: linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%);
+            transform: scale(1.02);
+        }
+
+        .file-upload-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .file-upload-text {
+            font-size: 1.1rem;
+            color: #722F37;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .file-upload-hint {
+            font-size: 0.9rem;
+            color: #718096;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .file-selected {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 10px 20px;
+            background: #10B981;
+            color: white;
+            border-radius: 8px;
+            font-weight: 600;
+            animation: slideIn 0.3s ease;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-group input[type="text"] {
+            padding: 12px 15px;
+            border: 2px solid #E2E8F0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            background: rgba(247, 250, 252, 0.95);
+            color: #1F2937;
+        }
+
+        .form-group input[type="text"]:focus {
+            outline: none;
+            border-color: #D4AF37;
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
+        }
+
+        .form-group input[type="text"].valid {
+            border-color: #10B981;
+            background: rgba(16, 185, 129, 0.05);
+        }
+
+        .form-group input[type="text"].invalid {
+            border-color: #EF4444;
+            background: rgba(239, 68, 68, 0.05);
+        }
+
+        .helper-btn {
+            transition: all 0.3s ease;
+        }
+
+        .helper-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .field-status.valid::before {
+            content: '✓ ';
+            color: #10B981;
+        }
+
+        .field-status.invalid::before {
+            content: '✗ ';
+            color: #EF4444;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(45, 27, 61, 0.95) 0%, rgba(114, 47, 55, 0.95) 100%);
+            backdrop-filter: blur(10px);
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            color: white;
+            opacity: 1;
+            transition: opacity 0.3s ease;
+        }
+
+        .loading-spinner {
+            border: 4px solid rgba(212, 175, 55, 0.3);
+            border-top: 4px solid #D4AF37;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        .loading-text {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            width: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #D4AF37 0%, #F4A460 50%, #D4AF37 100%);
+            background-size: 200% 100%;
+            color: #2D1B3D;
+            font-weight: 700;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+            text-shadow: 0 1px 2px rgba(255, 255, 255, 0.3);
+            border: 2px solid rgba(212, 175, 55, 0.5);
+            animation: gradientShift 3s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn-primary:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(212, 175, 55, 0.6), 0 0 20px rgba(212, 175, 55, 0.4);
+            border-color: #D4AF37;
+        }
+
+        .btn-primary:active {
+            transform: translateY(-1px);
+        }
+
+        .divider {
+            grid-column: 1 / -1;
+            text-align: center;
+            margin: 30px 0;
+            position: relative;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 40%;
+            height: 2px;
+            background: linear-gradient(to right, transparent, #4A5568, transparent);
+        }
+
+        .divider::before {
+            left: 0;
+        }
+
+        .divider::after {
+            right: 0;
+        }
+
+        .divider-text {
+            color: #4A5568;
+            font-weight: 600;
+            font-size: 1.1rem;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 0 20px;
+            position: relative;
+        }
+
+        .result-card {
+            margin-top: 30px;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            animation: fadeIn 0.5s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-card.fraud {
+            background: linear-gradient(135deg, #FEE2E2 0%, #FECACA 100%);
+            color: #991B1B;
+            border: 2px solid #DC2626;
+        }
+
+        .result-card.legit {
+            background: linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%);
+            color: #047857;
+            border: 2px solid #10B981;
+        }
+
+        .result-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        .result-card.fraud .result-icon::before {
+            content: '⚠️';
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .result-card.legit .result-icon::before {
+            content: '✓';
+            font-size: 4rem;
+            display: block;
+            color: #047857;
+        }
+
+        .result-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+
+        .result-prob {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            font-weight: 600;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            display: inline-block;
+            margin-top: 10px;
+        }
+
+        .error-card {
+            background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+            color: #92400E;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 30px;
+            border: 2px solid #F59E0B;
+            animation: shake 0.5s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .results-table-container {
+            margin-top: 30px;
+            overflow-x: auto;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .results-header {
+            text-align: center;
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #722F37 0%, #8B2635 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 25px;
+            letter-spacing: -0.02em;
+        }
+
+        .result-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+        .result-table thead {
+            background: linear-gradient(135deg, #722F37 0%, #8B2635 100%);
+            color: white;
+            box-shadow: 0 2px 8px rgba(114, 47, 55, 0.2);
+        }
+
+        .result-table th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.85rem;
+        }
+
+        .result-table td {
+            padding: 15px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .result-table tbody tr {
+            transition: background 0.2s ease;
+        }
+
+        .result-table tbody tr:hover {
+            background: rgba(247, 250, 252, 0.95);
+        }
+
+        .result-table tbody tr.fraud {
+            background: #FEE2E2;
+        }
+
+        .result-table tbody tr.fraud:hover {
+            background: #FECACA;
+        }
+
+        .result-table tbody tr.legit {
+            background: #D1FAE5;
+        }
+
+        .result-table tbody tr.legit:hover {
+            background: #A7F3D0;
+        }
+
+        .prediction-badge {
+            display: inline-block;
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .prediction-badge.fraud {
+            background: linear-gradient(135deg, #DC2626 0%, #EF4444 100%);
+            color: white;
+            box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+        }
+
+        .prediction-badge.legit {
+            background: linear-gradient(135deg, #047857 0%, #10B981 100%);
+            color: white;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+        }
+
+        .confidence-meter {
+            display: inline-block;
+            padding: 6px 15px;
+            background: rgba(237, 242, 247, 0.95);
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            backdrop-filter: blur(10px);
+            color: #4A5568;
+        }
+
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #722F37 0%, #8B2635 100%);
+            padding: 25px;
+            border-radius: 12px;
+            color: white;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(114, 47, 55, 0.4);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(114, 47, 55, 0.5), 0 0 20px rgba(212, 175, 55, 0.3);
+        }
+
+        .stat-card.fraud-stat {
+            background: linear-gradient(135deg, #DC2626 0%, #EF4444 100%);
+            box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
+        }
+
+        .stat-card.fraud-stat:hover {
+            box-shadow: 0 8px 25px rgba(220, 38, 38, 0.4);
+        }
+
+        .stat-card.legit-stat {
+            background: linear-gradient(135deg, #047857 0%, #10B981 100%);
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .stat-card.legit-stat:hover {
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+        }
+
+        .stat-card.amount-stat {
+            background: linear-gradient(135deg, #D4AF37 0%, #F4A460 100%);
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);
+            color: #2D1B3D;
+        }
+
+        .stat-card.amount-stat:hover {
+            box-shadow: 0 8px 25px rgba(212, 175, 55, 0.5);
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .stat-detail {
+            font-size: 0.85rem;
+            opacity: 0.8;
+        }
+
+        .show-more-btn {
+            margin-top: 20px;
+            padding: 12px 30px;
+            background: rgba(255, 255, 255, 0.95);
+            border: 2px solid #722F37;
+            color: #722F37;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            letter-spacing: 0.5px;
+            backdrop-filter: blur(10px);
+        }
+
+        .show-more-btn:hover {
+            background: linear-gradient(135deg, #722F37 0%, #8B2635 100%);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(114, 47, 55, 0.4);
+            border-color: #D4AF37;
+        }
+
+        .hidden-row {
+            display: none !important;
+        }
+
+        /* Action Toolbar */
+        .action-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(247, 250, 252, 0.95) 0%, rgba(237, 242, 247, 0.95) 100%);
+            border-radius: 12px;
+            gap: 15px;
+            flex-wrap: wrap;
+            border: 1px solid #E2E8F0;
+            backdrop-filter: blur(10px);
+        }
+
+        .toolbar-left, .toolbar-right {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .filter-select {
+            padding: 10px 15px;
+            border: 2px solid #4A5568;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.95);
+            color: #1F2937;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .filter-select:hover {
+            border-color: #D4AF37;
+            box-shadow: 0 2px 8px rgba(212, 175, 55, 0.3);
+        }
+
+        .action-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .export-btn {
+            background: linear-gradient(135deg, #047857 0%, #10B981 100%);
+            color: white;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+        }
+
+        .export-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+        }
+
+        /* Risk Badge */
+        .risk-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .risk-critical {
+            background: linear-gradient(135deg, #DC2626 0%, #EF4444 100%);
+            color: white;
+            box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+        }
+
+        .risk-high {
+            background: linear-gradient(135deg, #D97706 0%, #F59E0B 100%);
+            color: white;
+            box-shadow: 0 2px 8px rgba(217, 119, 6, 0.3);
+        }
+
+        .risk-medium {
+            background: linear-gradient(135deg, #F59E0B 0%, #FBBF24 100%);
+            color: #78350F;
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+        }
+
+        .risk-low {
+            background: linear-gradient(135deg, #047857 0%, #10B981 100%);
+            color: white;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+        }
+
+        /* Detail Button */
+        .detail-btn {
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #722F37 0%, #8B2635 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            letter-spacing: 0.3px;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+        }
+
+        .detail-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(114, 47, 55, 0.5), 0 0 10px rgba(212, 175, 55, 0.3);
+            background: linear-gradient(135deg, #8B2635 0%, #722F37 100%);
+            border-color: #D4AF37;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.7);
+            backdrop-filter: blur(5px);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            background: rgba(255, 255, 255, 0.95);
+            margin: 5% auto;
+            padding: 40px;
+            border-radius: 16px;
+            max-width: 800px;
+            width: 90%;
+            max-height: 85vh;
+            backdrop-filter: blur(10px);
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .modal-header h2 {
+            background: linear-gradient(135deg, #722F37 0%, #8B2635 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 1.8rem;
+            margin: 0;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .close {
+            color: #718096;
+            font-size: 32px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .close:hover {
+            color: #1F2937;
+        }
+
+        .detail-section {
+            margin-bottom: 30px;
+        }
+
+        .detail-section-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #722F37 0%, #8B2635 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            letter-spacing: -0.01em;
+        }
+
+        .risk-score-display {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(247, 250, 252, 0.95) 0%, rgba(237, 242, 247, 0.95) 100%);
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 1px solid #E2E8F0;
+            backdrop-filter: blur(10px);
+        }
+
+        .risk-score-circle {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: 700;
+            color: white;
+            background: linear-gradient(135deg, #722F37 0%, #8B2635 100%);
+            box-shadow: 0 4px 12px rgba(114, 47, 55, 0.4), 0 0 15px rgba(212, 175, 55, 0.2);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+        }
+
+        .risk-factors-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .risk-factor-item {
+            padding: 15px;
+            margin-bottom: 10px;
+            background: rgba(247, 250, 252, 0.95);
+            border-radius: 8px;
+            border-left: 4px solid #4A5568;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .risk-factor-item:hover {
+            background: rgba(237, 242, 247, 0.95);
+            transform: translateX(5px);
+        }
+
+        .risk-factor-item.critical {
+            border-left-color: #DC2626;
+            background: #FEE2E2;
+        }
+
+        .risk-factor-item.high {
+            border-left-color: #D97706;
+            background: #FEF3C7;
+        }
+
+        .risk-factor-item.medium {
+            border-left-color: #F59E0B;
+            background: #FEF3C7;
+        }
+
+        .factor-name {
+            font-weight: 600;
+            color: #1F2937;
+            margin-bottom: 5px;
+        }
+
+        .factor-description {
+            font-size: 0.9rem;
+            color: #4A5568;
+        }
+
+        .recommendation-box {
+            padding: 20px;
+            background: linear-gradient(135deg, #F0FDF4 0%, #D1FAE5 100%);
+            border-radius: 12px;
+            border-left: 4px solid #10B981;
+            margin-top: 20px;
+        }
+
+        .recommendation-title {
+            font-weight: 600;
+            color: #047857;
+            margin-bottom: 10px;
+        }
+
+        .transaction-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .info-item {
+            padding: 15px;
+            background: rgba(247, 250, 252, 0.95);
+            border-radius: 8px;
+            border: 1px solid #E2E8F0;
+            backdrop-filter: blur(10px);
+        }
+
+        .info-label {
+            font-size: 0.85rem;
+            color: #4A5568;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #1F2937;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+            }
+
+            .header-logo {
+                height: 50px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .card {
+                padding: 25px;
+            }
+
+            .form-grid {
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- CRITICAL: Set result flags IMMEDIATELY if results exist - BEFORE any other scripts -->
+    {% if single_prediction %}
+    <script>
+        // This MUST run before ANY other JavaScript
+        window.hasSingleResult = true;
+        window.preventFormReset = true;
+        window._singleResultRendered = true;
+        console.log('✓✓✓ RESULTS FLAGS SET AT PAGE TOP ✓✓✓');
+        // Set on body when available
+        if (document.body) {
+            document.body.setAttribute('data-has-single-result', 'true');
+            document.body.setAttribute('data-result-rendered', 'true');
+        }
+        // If body not ready, wait for it
+        if (!document.body) {
+            (function() {
+                var check = setInterval(function() {
+                    if (document.body) {
+                        document.body.setAttribute('data-has-single-result', 'true');
+                        document.body.setAttribute('data-result-rendered', 'true');
+                        clearInterval(check);
+                    }
+                }, 5);
+                setTimeout(function() { clearInterval(check); }, 1000);
+            })();
+        }
+    </script>
+    {% endif %}
+    
+    <!-- Navigation Bar -->
+    <nav class="navbar" style="position: fixed; top: 0; left: 0; right: 0; width: 100%; background: linear-gradient(135deg, rgba(45, 27, 61, 0.95) 0%, rgba(114, 47, 55, 0.95) 100%); backdrop-filter: blur(10px); padding: 15px 0; z-index: 1000; box-shadow: 0 4px 20px rgba(114, 47, 55, 0.4), 0 0 20px rgba(212, 175, 55, 0.1); animation: slideDown 0.5s ease-out; border-bottom: 2px solid rgba(212, 175, 55, 0.2); box-sizing: border-box; margin: 0;">
+        <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; padding-left: 20px; padding-right: 37px;">
+            <a href="{{ url_for('home') }}" style="display: flex; align-items: center; gap: 15px; text-decoration: none; color: white; transition: transform 0.3s ease; margin: 0; padding: 0;">
+                <img src="{{ url_for('static', filename='logo.png') }}" alt="FraudGuard Logo" style="height: 40px; width: auto;">
+                <span style="font-size: 1.3rem; font-weight: 700;">FraudGuard</span>
+            </a>
+            <a href="{{ url_for('home') }}" class="nav-back-btn" style="background: rgba(255, 255, 255, 0.1); color: white; padding: 10px 25px; border-radius: 8px; text-decoration: none; transition: all 0.3s ease; border: 1px solid rgba(255, 255, 255, 0.2); display: inline-block; margin: 0;">
+                ← Back to Home
+            </a>
+        </div>
+    </nav>
+    
+    <style>
+        @keyframes slideDown {
+            from {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        .nav-back-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateX(-5px);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+        
+        nav a[href*="home"]:first-of-type:hover {
+            transform: scale(1.05);
+        }
+    </style>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Processing...</div>
+    </div>
+
+    <div class="app-container" style="margin-top: 100px;">
+        <div class="header">
+            <div>
+                <!-- <img src="{{ url_for('static', filename='logo.png') }}" alt="FraudGuard Logo" class="header-logo"> -->
+                <h1>Transaction Analysis</h1>
+                <p>Analyze single transactions or batch files for fraud detection</p>
+            </div>
+        </div>
+
+        <form method="post" action="{{ url_for('predict') }}" enctype="multipart/form-data" autocomplete="off">
+            
+            <!-- Batch Analysis Section (Option 2) -->
+            <div class="card">
+                <div class="section-title">Batch Transaction Analysis</div>
+                <div class="helper-buttons" style="margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
+                    <a href="{{ url_for('download_template') }}" class="helper-btn" style="background: rgba(212, 175, 55, 0.15); color: #722F37; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-size: 0.9rem; border: 1px solid #D4AF37; transition: all 0.3s ease; font-weight: 600;">
+                        📥 Download CSV Template
+                    </a>
+                    <button type="button" class="helper-btn" onclick="clearFileInput()" style="background: rgba(239, 68, 68, 0.1); color: #EF4444; padding: 10px 20px; border-radius: 8px; border: 1px solid #EF4444; font-size: 0.9rem; cursor: pointer; transition: all 0.3s ease;">
+                        🗑️ Clear File
+                    </button>
+                </div>
+                <div class="file-upload-area" onclick="document.getElementById('csv_file').click()" 
+                     ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+                    <div class="file-upload-icon"></div>
+                    <div class="file-upload-text">Upload CSV File</div>
+                    <div class="file-upload-hint">Drag & drop your file here or click to browse</div>
+                    <div class="file-upload-requirements" style="margin-top: 15px; font-size: 0.85rem; color: #718096; line-height: 1.6;">
+                        <div style="margin-bottom: 5px;"><strong>Required columns:</strong> Time, Amount, V1-V28</div>
+                        <!-- <div style="font-size: 0.8rem; opacity: 0.8;">📋 <a href="{{ url_for('download_template') }}" style="color: #D4AF37; text-decoration: none; font-weight: 600;">Download template</a> for the correct format</div> -->
+                    </div>
+                    <input type="file" name="csv_file" accept=".csv" id="csv_file" onchange="showFileName(this)">
+                    <span id="file-name" class="file-selected" style="display: none;"></span>
+                    <div id="file-info" style="margin-top: 12px; font-size: 0.85rem; color: #718096; display: none; padding: 8px 12px; background: rgba(212, 175, 55, 0.15); border-radius: 6px; border: 1px solid rgba(212, 175, 55, 0.3);">
+                        <span id="file-size"></span> | <span id="file-row-count"></span>
+                    </div>
+                </div>
+                <button type="submit" name="action" value="predict_csv" class="btn btn-primary" onclick="return validateFileUpload(event)" id="analyze-btn">
+                    <span id="analyze-btn-text">Analyze Transactions</span>
+                    <span id="analyze-btn-loader" style="display: none;">⏳ Processing...</span>
+                </button>
+            </div>
+
+            <!-- Batch Results Section (appears below batch analysis) -->
+            {% if batch_predictions %}
+                <div class="card">
+                    <div class="results-header">Analysis Results</div>
+                    
+                    <!-- Summary Statistics -->
+                    {% if batch_summary %}
+                    <div class="summary-stats">
+                        <div class="stat-card">
+                            <div class="stat-label">Total Transactions</div>
+                            <div class="stat-value">{{ batch_summary.total_transactions }}</div>
+                            <div class="stat-detail">Analyzed</div>
+                        </div>
+                        <div class="stat-card fraud-stat">
+                            <div class="stat-label">Fraudulent</div>
+                            <div class="stat-value">{{ batch_summary.fraudulent }}</div>
+                            <div class="stat-detail">{{ batch_summary.fraud_percentage }}% of total</div>
+                        </div>
+                        <div class="stat-card legit-stat">
+                            <div class="stat-label">Legitimate</div>
+                            <div class="stat-value">{{ batch_summary.legitimate }}</div>
+                            <div class="stat-detail">{{ batch_summary.legit_percentage }}% of total</div>
+                        </div>
+                        <div class="stat-card amount-stat">
+                            <div class="stat-label">Total Amount</div>
+                            <div class="stat-value">${{ batch_summary.total_amount }}</div>
+                            <div class="stat-detail">${{ batch_summary.fraud_amount }} at risk</div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Action Toolbar -->
+                    <div class="action-toolbar">
+                        <div class="toolbar-left">
+                            <select id="filter-status" class="filter-select" onchange="filterTable()">
+                                <option value="all">All Transactions</option>
+                                <option value="fraud">Fraudulent Only</option>
+                                <option value="legit">Legitimate Only</option>
+                            </select>
+                            <select id="sort-by" class="filter-select" onchange="sortTable()">
+                                <option value="time">Sort by Time</option>
+                                <option value="amount">Sort by Amount</option>
+                                <option value="probability">Sort by Confidence</option>
+                            </select>
+                        </div>
+                        <div class="toolbar-right">
+                            <button type="button" class="action-btn export-btn" onclick="exportResults('csv')">
+                                Export CSV
+                            </button>
+                            <button type="button" class="action-btn export-btn" onclick="exportResults('json')">
+                                Export JSON
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Results Table -->
+                    <div class="results-table-container">
+                        <table class="result-table" id="results-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Time</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Confidence</th>
+                                    <th>Risk Level</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for pred in batch_predictions %}
+                                    <tr class="transaction-row {{ 'fraud' if 'FRAUD' in pred.prediction else 'legit' }} {% if loop.index > 10 %}hidden-row{% endif %}" 
+                                        data-status="{{ 'fraud' if 'FRAUD' in pred.prediction else 'legit' }}"
+                                        data-amount="{{ pred.amount }}"
+                                        data-probability="{{ pred.probability }}"
+                                        data-time="{{ pred.time }}"
+                                        data-index="{{ loop.index0 }}">
+                                        <td>{{ loop.index }}</td>
+                                        <td>{{ pred.time }}</td>
+                                        <td>${{ pred.amount }}</td>
+                                        <td>
+                                            <span class="prediction-badge {{ 'fraud' if 'FRAUD' in pred.prediction else 'legit' }}">
+                                                {{ pred.prediction }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="confidence-meter">{{ pred.probability }}%</span>
+                                        </td>
+                                        <td>
+                                            {% if pred.risk_factors %}
+                                                <span class="risk-badge risk-{{ pred.risk_factors.risk_level|lower }}">
+                                                    {{ pred.risk_factors.risk_level }}
+                                                </span>
+                                            {% else %}
+                                                <span class="risk-badge risk-low">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <button type="button" class="detail-btn" data-transaction-index="{{ loop.index0 }}" onclick="showTransactionDetails(this.dataset.transactionIndex)">
+                                                View Details
+                                            </button>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    {% if batch_predictions|length > 10 %}
+                    <button type="button" class="show-more-btn" onclick="showMoreRows()" id="show-more-btn">
+                        Show More ({{ batch_predictions|length - 10 }} remaining)
+                    </button>
+                    {% endif %}
+                </div>
+            {% endif %}
+
+            {% if error_csv %}
+                <div class="card">
+                    <div class="error-card">
+                        <strong>Error:</strong> {{ error_csv }}
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Single Transaction Section (Option 1) -->
+            <div class="card">
+                <div class="section-title">Single Transaction Analysis</div>
+                <div class="helper-buttons" style="margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button type="button" class="helper-btn" onclick="fillSampleData()" style="background: rgba(16, 185, 129, 0.1); color: #10B981; padding: 10px 20px; border-radius: 8px; border: 1px solid #10B981; font-size: 0.9rem; cursor: pointer; transition: all 0.3s ease;">
+                        📋 Fill Sample Data
+                    </button>
+                    <button type="button" class="helper-btn" onclick="clearAllInputs()" style="background: rgba(239, 68, 68, 0.1); color: #EF4444; padding: 10px 20px; border-radius: 8px; border: 1px solid #EF4444; font-size: 0.9rem; cursor: pointer; transition: all 0.3s ease;">
+                        🗑️ Clear All
+                    </button>
+                    <button type="button" class="helper-btn" onclick="validateFormInputs()" style="background: rgba(212, 175, 55, 0.15); color: #722F37; padding: 10px 20px; border-radius: 8px; border: 1px solid #D4AF37; font-size: 0.9rem; cursor: pointer; transition: all 0.3s ease; font-weight: 600;">
+                        ✓ Validate Form
+                    </button>
+                </div>
+                <div class="form-grid" id="single-form-grid">
+                    {% for i in range(1, 29) %}
+                    <div class="form-group">
+                        <label for="V{{i}}">V{{i}} <span class="field-status" id="status-V{{i}}" style="font-size: 0.7rem; color: #718096;"></span></label>
+                        <input type="text" id="V{{i}}" name="V{{i}}" placeholder="0.0" autocomplete="off" onblur="validateInput(this)" />
+                        <div class="input-error" id="error-V{{i}}" style="display: none; color: #EF4444; font-size: 0.75rem; margin-top: 4px;"></div>
+                    </div>
+                    {% endfor %}
+                    <div class="form-group">
+                        <label for="Time">Time <span class="field-status" id="status-Time" style="font-size: 0.7rem; color: #718096;"></span></label>
+                        <input type="text" id="Time" name="Time" placeholder="Seconds" autocomplete="off" onblur="validateInput(this)" />
+                        <div class="input-error" id="error-Time" style="display: none; color: #EF4444; font-size: 0.75rem; margin-top: 4px;"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="Amount">Amount <span class="field-status" id="status-Amount" style="font-size: 0.7rem; color: #718096;"></span></label>
+                        <input type="text" id="Amount" name="Amount" placeholder="0.00" autocomplete="off" onblur="validateInput(this)" />
+                        <div class="input-error" id="error-Amount" style="display: none; color: #EF4444; font-size: 0.75rem; margin-top: 4px;"></div>
+                    </div>
+                </div>
+                <div class="form-validation-summary" id="form-validation-summary" style="margin-bottom: 20px; padding: 15px; border-radius: 8px; background: rgba(212, 175, 55, 0.15); border: 1px solid #D4AF37; display: none;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 1.2rem;">📊</span>
+                        <div>
+                            <strong>Form Status:</strong>
+                            <span id="validation-status-text">Checking...</span>
+                        </div>
+                    </div>
+                </div>
+                <button type="submit" name="action" value="predict_single" class="btn btn-primary" id="single-analyze-btn" onclick="return validateSingleForm(event)">
+                    <span id="single-analyze-btn-text">Analyze Transaction</span>
+                    <span id="single-analyze-btn-loader" style="display: none;">⏳ Processing...</span>
+                </button>
+            </div>
+        </form>
+
+        <!-- Results Section -->
+        {% if single_prediction %}
+            <!-- Backup flags - main flags set at top of body -->
+            <script>
+                window.hasSingleResult = true;
+                window.preventFormReset = true;
+                window._singleResultRendered = true;
+                if (document.body) {
+                    document.body.setAttribute('data-has-single-result', 'true');
+                    document.body.setAttribute('data-result-rendered', 'true');
+                }
+                console.log('Results section script executed - flags set');
+                
+                // Force results to be visible immediately when script runs
+                (function() {
+                    function forceVisibility() {
+                        const resultCard = document.getElementById('single-result-card');
+                        const resultDisplay = document.getElementById('single-result-display');
+                        const resultText = document.getElementById('result-text-display');
+                        
+                        if (resultCard) {
+                            resultCard.style.display = 'block';
+                            resultCard.style.visibility = 'visible';
+                            resultCard.style.opacity = '1';
+                            console.log('Forced result card visibility in results section script');
+                        }
+                        if (resultDisplay) {
+                            resultDisplay.style.display = 'block';
+                            resultDisplay.style.visibility = 'visible';
+                        }
+                        if (resultText) {
+                            resultText.style.display = 'block';
+                        }
+                    }
+                    
+                    // Try immediately
+                    forceVisibility();
+                    
+                    // Also try after a tiny delay
+                    setTimeout(forceVisibility, 10);
+                    setTimeout(forceVisibility, 100);
+                })();
+            </script>
+            <!-- Single Transaction Results -->
+            <div class="card" style="animation: fadeInUp 0.6s ease-out; display: block !important; visibility: visible !important; opacity: 1 !important;" id="single-result-card" data-has-results="true" data-result-text="{{ single_prediction.text }}">
+                <div class="result-card {{ 'fraud' if 'FRAUD' in single_prediction.text or 'Error' in single_prediction.text else 'legit' }}" id="single-result-display" data-has-results="true" data-result-content="present" style="display: block !important; visibility: visible !important;">
+                    <div class="result-icon"></div>
+                    <div class="result-text" id="result-text-display" style="display: block !important;">{{ single_prediction.text }}</div>
+                    <div class="result-prob" id="result-prob-display" style="display: block !important;">{{ single_prediction.prob }}</div>
+                    <div style="margin-top: 25px; padding-top: 20px; border-top: 2px solid rgba(0,0,0,0.1); display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                        <button data-href="{{ url_for('analyze') }}" class="helper-btn analyze-another-btn" style="background: rgba(114, 47, 55, 0.15); color: #722F37; padding: 12px 25px; border-radius: 8px; border: 1px solid #722F37; font-size: 0.95rem; cursor: pointer; font-weight: 600;">
+                            🔄 Analyze Another
+                        </button>
+                        <button onclick="clearAllInputs(); scrollToForm();" class="helper-btn" style="background: rgba(212, 175, 55, 0.15); color: #722F37; padding: 12px 25px; border-radius: 8px; border: 1px solid #D4AF37; font-size: 0.95rem; cursor: pointer; font-weight: 600;">
+                            📝 New Transaction
+                        </button>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Transaction Details Modal -->
+    <div id="transactionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Transaction Analysis Details</h2>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <div id="modalBody">
+                <!-- Content will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Intercept resetForm BEFORE it's defined - protect results from being cleared
+        (function() {
+            // This runs immediately when script loads
+            if (window.hasSingleResult === true || window.preventFormReset === true) {
+                console.log('Script loading: Results flags already set, protecting against reset');
+            }
+            
+            // Store original resetForm if it exists (it shouldn't yet, but just in case)
+            window._resetFormOriginal = null;
+        })();
+        
+        function showFileName(input) {
+            const file = input.files[0];
+            const fileName = file?.name || '';
+            const fileLabel = document.getElementById('file-name');
+            const fileInfo = document.getElementById('file-info');
+            const fileSize = document.getElementById('file-size');
+            const fileRowCount = document.getElementById('file-row-count');
+            
+            if (fileLabel && fileName) {
+                fileLabel.textContent = '✓ ' + fileName;
+                fileLabel.style.display = 'block';
+                
+                // Show file info
+                if (file && fileInfo) {
+                    const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+                    if (fileSize) fileSize.textContent = `Size: ${sizeMB} MB`;
+                    
+                    // Try to count rows if it's a CSV
+                    if (file.name.endsWith('.csv')) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            const text = e.target.result;
+                            const lines = text.split('\n').filter(line => line.trim());
+                            const rowCount = Math.max(0, lines.length - 1); // Subtract header
+                            if (fileRowCount) fileRowCount.textContent = `~${rowCount} transactions`;
+                            if (fileInfo) fileInfo.style.display = 'block';
+                        };
+                        reader.readAsText(file.slice(0, 10000)); // Read first 10KB for row count
+                    } else {
+                        if (fileInfo) fileInfo.style.display = 'none';
+                    }
+                }
+                
+                showNotification('File selected successfully', 'success');
+            } else if (fileLabel) {
+                fileLabel.style.display = 'none';
+                if (fileInfo) fileInfo.style.display = 'none';
+            }
+        }
+
+        function validateFileUpload(event) {
+            const fileInput = document.getElementById('csv_file');
+            if (!fileInput.files || fileInput.files.length === 0) {
+                alert('Please select a CSV file before submitting.');
+                event.preventDefault();
+                return false;
+            }
+            return true;
+        }
+
+        function handleDragOver(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            event.currentTarget.classList.add('dragover');
+        }
+
+        function handleDragLeave(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            event.currentTarget.classList.remove('dragover');
+        }
+
+        function handleDrop(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            event.currentTarget.classList.remove('dragover');
+            
+            const files = event.dataTransfer.files;
+            if (files.length > 0) {
+                const fileInput = document.getElementById('csv_file');
+                fileInput.files = files;
+                showFileName(fileInput);
+            }
+        }
+
+        function showMoreRows(event) {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            
+            // Get current filter value
+            const filterValue = document.getElementById('filter-status').value;
+            const resultsTable = document.getElementById('results-table');
+            if (!resultsTable) return;
+            
+            // Find all rows with hidden-row class that match the current filter
+            const hiddenRows = resultsTable.querySelectorAll('tbody tr.hidden-row');
+            const showMoreBtn = document.getElementById('show-more-btn');
+            
+            let shownCount = 0;
+            
+            // Only show hidden rows that match the current filter
+            hiddenRows.forEach(row => {
+                const matchesFilter = filterValue === 'all' || 
+                                    (filterValue === 'fraud' && row.dataset.status === 'fraud') ||
+                                    (filterValue === 'legit' && row.dataset.status === 'legit');
+                
+                if (matchesFilter) {
+                    row.classList.remove('hidden-row');
+                    row.style.display = 'table-row';
+                    shownCount++;
+                }
+            });
+            
+            // Update button or hide if no more rows to show
+            updateShowMoreButton();
+        }
+        
+        function updateShowMoreButton() {
+            const filterValue = document.getElementById('filter-status').value;
+            const showMoreBtn = document.getElementById('show-more-btn');
+            if (!showMoreBtn) return;
+            
+            const resultsTable = document.getElementById('results-table');
+            if (!resultsTable) return;
+            
+            // Count hidden rows that match current filter
+            const hiddenRows = resultsTable.querySelectorAll('tbody tr.hidden-row');
+            let matchingHiddenCount = 0;
+            
+            hiddenRows.forEach(row => {
+                const matchesFilter = filterValue === 'all' || 
+                                    (filterValue === 'fraud' && row.dataset.status === 'fraud') ||
+                                    (filterValue === 'legit' && row.dataset.status === 'legit');
+                if (matchesFilter) {
+                    matchingHiddenCount++;
+                }
+            });
+            
+            if (matchingHiddenCount > 0) {
+                showMoreBtn.textContent = `Show More (${matchingHiddenCount} remaining)`;
+                showMoreBtn.style.display = 'block';
+            } else {
+                showMoreBtn.style.display = 'none';
+            }
+        }
+
+        // Transaction Details Modal Functions
+        function showTransactionDetails(index) {
+            // Handle both string and number input from data attribute
+            const indexNum = typeof index === 'string' ? parseInt(index, 10) : index;
+            const modal = document.getElementById('transactionModal');
+            const modalBody = document.getElementById('modalBody');
+            const row = document.querySelector(`tr[data-index="${indexNum}"]`);
+            
+            if (!row) return;
+            
+            // Get transaction data from row attributes
+            const transactionData = {
+                index: parseInt(row.dataset.index),
+                time: row.dataset.time,
+                amount: row.dataset.amount,
+                probability: row.dataset.probability,
+                status: row.dataset.status,
+                prediction: row.querySelector('.prediction-badge').textContent.trim()
+            };
+            
+            // Build modal content
+            let html = `
+                <div class="detail-section">
+                    <div class="detail-section-title">Transaction Information</div>
+                    <div class="transaction-info-grid">
+                        <div class="info-item">
+                            <div class="info-label">Transaction #</div>
+                            <div class="info-value">${transactionData.index + 1}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Time</div>
+                            <div class="info-value">${transactionData.time}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Amount</div>
+                            <div class="info-value">$${transactionData.amount}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Status</div>
+                            <div class="info-value">
+                                <span class="prediction-badge ${transactionData.status === 'fraud' ? 'fraud' : 'legit'}">
+                                    ${transactionData.prediction}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Confidence</div>
+                            <div class="info-value">${transactionData.probability}%</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="detail-section">
+                    <div class="detail-section-title">Risk Analysis</div>
+                    <div class="risk-score-display">
+                        <div class="risk-score-circle">${Math.round(transactionData.probability)}</div>
+                        <div>
+                            <h3 style="margin: 0; color: #1F2937;">Risk Score: ${Math.round(transactionData.probability)}/100</h3>
+                            <p style="margin: 5px 0; color: #4A5568;">
+                                ${transactionData.status === 'fraud' ? 'This transaction has been flagged as potentially fraudulent.' : 'This transaction appears to be legitimate.'}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                ${transactionData.status === 'fraud' ? `
+                <!-- Fraud Detection Analysis -->
+                <div class="detail-section">
+                    <div class="detail-section-title">Fraud Detection Analysis</div>
+                    <ul class="risk-factors-list">
+                        <li class="risk-factor-item ${transactionData.probability > 90 ? 'critical' : transactionData.probability > 70 ? 'high' : 'medium'}">
+                            <div class="factor-name">Fraud Detection Alert</div>
+                            <div class="factor-description">
+                                The AI model has identified this transaction as FRAUDULENT with ${transactionData.probability}% confidence. 
+                                ${transactionData.probability > 90 ? 'This is a very strong fraud indicator requiring immediate action.' : transactionData.probability > 70 ? 'This indicates a high probability of fraudulent activity.' : 'This transaction shows suspicious patterns that warrant investigation.'}
+                            </div>
+                        </li>
+                        ${parseFloat(transactionData.amount) > 5000 ? `
+                        <li class="risk-factor-item ${parseFloat(transactionData.amount) > 10000 ? 'critical' : 'high'}">
+                            <div class="factor-name">${parseFloat(transactionData.amount) > 10000 ? 'High-Risk' : 'Elevated'} Transaction Amount</div>
+                            <div class="factor-description">
+                                Transaction amount of $${transactionData.amount} ${parseFloat(transactionData.amount) > 10000 ? 'exceeds the $10,000 high-risk threshold' : 'is above the $5,000 elevated risk level'}. Large amounts increase the potential financial impact of fraud.
+                            </div>
+                        </li>
+                        ` : ''}
+                        <li class="risk-factor-item ${transactionData.probability > 70 ? 'high' : 'medium'}">
+                            <div class="factor-name">Anomalous Pattern Detection</div>
+                            <div class="factor-description">
+                                Multiple PCA components show unusual patterns that deviate significantly from normal transaction behavior. These anomalies include irregular feature combinations typical of fraudulent activity such as card testing, account takeover, or stolen card usage.
+                            </div>
+                        </li>
+                        <li class="risk-factor-item medium">
+                            <div class="factor-name">Risk Indicators Identified</div>
+                            <div class="factor-description">
+                                The model has detected several red flags: unusual feature correlations, outlier values in encrypted transaction parameters, and patterns consistent with known fraud schemes. These indicators suggest this transaction should not proceed without verification.
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="detail-section">
+                    <div class="recommendation-box" style="background: linear-gradient(135deg, #FEE2E2 0%, #FECACA 100%); border-left-color: #DC2626;">
+                        <div class="recommendation-title" style="color: #DC2626;">Immediate Action Required</div>
+                        <p style="margin: 0; color: #1F2937;">
+                            ${transactionData.probability > 90 ? 
+                                '<strong>BLOCK TRANSACTION:</strong> This transaction must be blocked immediately. The fraud detection model has identified this with very high confidence. Contact the cardholder immediately to verify the transaction and confirm their identity. Escalate to the fraud prevention team for investigation.' :
+                                '<strong>FLAG FOR REVIEW:</strong> This transaction requires immediate manual review by the fraud team. Do not process until verified. Request additional authentication from the cardholder. Consider placing a temporary hold on the account until verification is complete.'}
+                        </p>
+                    </div>
+                </div>
+                ` : `
+                <!-- Legitimate Transaction Analysis -->
+                <div class="detail-section">
+                    <div class="detail-section-title">Transaction Validation Analysis</div>
+                    <ul class="risk-factors-list">
+                        <li class="risk-factor-item" style="border-left-color: #10B981; background: #D1FAE5;">
+                            <div class="factor-name">Transaction Verification Status</div>
+                            <div class="factor-description">
+                                The AI model has validated this transaction as LEGITIMATE with ${transactionData.probability}% confidence. 
+                                All verification checks passed successfully. This transaction shows normal patterns consistent with authorized cardholder activity.
+                            </div>
+                        </li>
+                        <li class="risk-factor-item" style="border-left-color: #10B981; background: #D1FAE5;">
+                            <div class="factor-name">Normal Transaction Patterns</div>
+                            <div class="factor-description">
+                                PCA component analysis indicates this transaction follows expected patterns for legitimate cardholder behavior. All encrypted feature values fall within normal ranges, and the transaction characteristics align with the cardholder's typical spending profile.
+                            </div>
+                        </li>
+                        ${parseFloat(transactionData.amount) > 5000 ? `
+                        <li class="risk-factor-item" style="border-left-color: #4A5568; background: #EDF2F7;">
+                            <div class="factor-name">Large Amount Verification</div>
+                            <div class="factor-description">
+                                While this transaction amount ($${transactionData.amount}) is ${parseFloat(transactionData.amount) > 10000 ? 'above $10,000' : 'above $5,000'}, the model has verified that it does not show signs of fraud. The transaction appears legitimate based on all risk factors analyzed.
+                            </div>
+                        </li>
+                        ` : ''}
+                        <li class="risk-factor-item" style="border-left-color: #10B981; background: #D1FAE5;">
+                            <div class="factor-name">Security Check Passed</div>
+                            <div class="factor-description">
+                                All security checks have passed. The transaction shows no signs of account compromise, card testing, or unauthorized access. The feature patterns indicate this is a normal, authorized transaction that can be processed safely.
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="detail-section">
+                    <div class="recommendation-box" style="background: linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%); border-left-color: #10B981;">
+                        <div class="recommendation-title" style="color: #047857;">Transaction Approved</div>
+                        <p style="margin: 0; color: #1F2937;">
+                            <strong>PROCESS TRANSACTION:</strong> This transaction has been validated and approved by the fraud detection system. It shows all characteristics of a legitimate transaction. Proceed with normal processing. No additional verification is required at this time. Continue standard monitoring for any pattern changes.
+                        </p>
+                    </div>
+                </div>
+                `}
+            `;
+            
+            modalBody.innerHTML = html;
+            modal.style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('transactionModal').style.display = 'none';
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('transactionModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // Filter Table
+        function filterTable() {
+            const filterValue = document.getElementById('filter-status').value;
+            const rows = document.querySelectorAll('.transaction-row');
+            
+            rows.forEach(row => {
+                const matchesFilter = filterValue === 'all' || 
+                                    (filterValue === 'fraud' && row.dataset.status === 'fraud') ||
+                                    (filterValue === 'legit' && row.dataset.status === 'legit');
+                
+                if (matchesFilter) {
+                    // Show row if it matches filter (whether it's hidden-row or not)
+                    row.style.display = row.classList.contains('hidden-row') ? 'none' : 'table-row';
+                } else {
+                    // Hide row if it doesn't match filter
+                    row.style.display = 'none';
+                }
+            });
+            
+            // Update the show more button count after filtering
+            updateShowMoreButton();
+        }
+
+        // Sort Table
+        function sortTable() {
+            const sortBy = document.getElementById('sort-by').value;
+            const tbody = document.querySelector('#results-table tbody');
+            const rows = Array.from(tbody.querySelectorAll('.transaction-row'));
+            
+            rows.sort((a, b) => {
+                let aVal, bVal;
+                
+                if (sortBy === 'time') {
+                    aVal = parseFloat(a.dataset.time);
+                    bVal = parseFloat(b.dataset.time);
+                } else if (sortBy === 'amount') {
+                    aVal = parseFloat(a.dataset.amount);
+                    bVal = parseFloat(b.dataset.amount);
+                } else if (sortBy === 'probability') {
+                    aVal = parseFloat(a.dataset.probability);
+                    bVal = parseFloat(b.dataset.probability);
+                    return bVal - aVal; // Descending for probability
+                }
+                
+                return aVal - bVal;
+            });
+            
+            // Remove all rows and re-append in sorted order
+            rows.forEach(row => tbody.removeChild(row));
+            rows.forEach(row => tbody.appendChild(row));
+        }
+
+        // Export Results
+        function exportResults(format) {
+            const filterValue = document.getElementById('filter-status').value;
+            const rows = document.querySelectorAll('.transaction-row');
+            const data = [];
+            
+            rows.forEach(row => {
+                // Check if row matches current filter and is visible
+                const matchesFilter = filterValue === 'all' || 
+                                    (filterValue === 'fraud' && row.dataset.status === 'fraud') ||
+                                    (filterValue === 'legit' && row.dataset.status === 'legit');
+                const isVisible = row.style.display !== 'none' && !row.classList.contains('hidden-row');
+                
+                if (matchesFilter && isVisible) {
+                    data.push({
+                        '#': row.querySelector('td:first-child').textContent,
+                        'Time': row.dataset.time,
+                        'Amount': row.dataset.amount,
+                        'Status': row.querySelector('.prediction-badge').textContent.trim(),
+                        'Confidence': row.dataset.probability + '%',
+                        'Risk Level': row.querySelector('.risk-badge').textContent.trim()
+                    });
+                }
+            });
+            
+            if (format === 'csv') {
+                // Convert to CSV
+                const headers = Object.keys(data[0] || {});
+                const csvContent = [
+                    headers.join(','),
+                    ...data.map(row => headers.map(header => `"${row[header]}"`).join(','))
+                ].join('\n');
+                
+                // Download CSV
+                const blob = new Blob([csvContent], { type: 'text/csv' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `fraud_analysis_${new Date().toISOString().split('T')[0]}.csv`;
+                a.click();
+                window.URL.revokeObjectURL(url);
+            } else if (format === 'json') {
+                // Convert to JSON
+                const jsonContent = JSON.stringify(data, null, 2);
+                
+                // Download JSON
+                const blob = new Blob([jsonContent], { type: 'application/json' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `fraud_analysis_${new Date().toISOString().split('T')[0]}.json`;
+                a.click();
+                window.URL.revokeObjectURL(url);
+            }
+        }
+
+        // Initialize and reset form on page load
+        // CRITICAL: Check for results IMMEDIATELY - no delays, no timeouts
+        window.addEventListener('load', function() {
+            console.log('window.load fired - checking for results...');
+            
+            // Check flags FIRST (set at top of body tag if results exist)
+            const flagCheck = window.hasSingleResult === true || 
+                            window.preventFormReset === true ||
+                            window._singleResultRendered === true;
+            
+            // Check body attributes
+            const attrCheck = document.body && (
+                document.body.getAttribute('data-has-single-result') === 'true' ||
+                document.body.getAttribute('data-result-rendered') === 'true'
+            );
+            
+            // Check DOM elements
+            const resultCardEl = document.getElementById('single-result-card');
+            const resultDisplayEl = document.getElementById('single-result-display');
+            const resultTextEl = document.getElementById('result-text-display');
+            const domCheck = resultCardEl || resultDisplayEl || resultTextEl;
+            
+            // Also check for result text content
+            let hasResultText = false;
+            if (resultTextEl && resultTextEl.textContent && resultTextEl.textContent.trim().length > 0) {
+                hasResultText = true;
+            }
+            
+            console.log('Results check:', {
+                flags: flagCheck,
+                attrs: attrCheck,
+                dom: !!domCheck,
+                hasText: hasResultText,
+                resultCard: !!resultCardEl,
+                resultDisplay: !!resultDisplayEl,
+                resultText: !!resultTextEl
+            });
+            
+            if (flagCheck || attrCheck || domCheck || hasResultText) {
+                console.log('✓✓✓ RESULTS FOUND - BLOCKING RESET ✓✓✓');
+                
+                // CRITICAL: Force results to be visible
+                const resultCard = document.getElementById('single-result-card');
+                const resultDisplay = document.getElementById('single-result-display');
+                const resultText = document.getElementById('result-text-display');
+                
+                if (resultCard) {
+                    resultCard.style.display = 'block';
+                    resultCard.style.visibility = 'visible';
+                    resultCard.style.opacity = '1';
+                    console.log('Forced result card visibility');
+                }
+                if (resultDisplay) {
+                    resultDisplay.style.display = 'block';
+                    resultDisplay.style.visibility = 'visible';
+                    console.log('Forced result display visibility');
+                }
+                if (resultText) {
+                    resultText.style.display = 'block';
+                    console.log('Result text found:', resultText.textContent.substring(0, 50));
+                }
+                
+                hideLoading();
+                // Scroll to results after a brief delay
+                setTimeout(() => {
+                    const scrollTarget = document.getElementById('single-result-display') || 
+                                       document.getElementById('single-result-card');
+                    if (scrollTarget) {
+                        scrollTarget.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        // Highlight result
+                        scrollTarget.style.animation = 'pulse 1s ease-in-out';
+                    }
+                }, 300);
+                // Initialize show more button if it exists
+                if (document.getElementById('show-more-btn')) {
+                    updateShowMoreButton();
+                }
+                // EXIT - DO NOT RESET
+                return;
+            }
+            
+            // No results found - safe to reset
+            console.log('No results found, resetting form');
+            resetForm();
+            window.scrollTo(0, 0);
+            
+            // Initialize show more button if it exists
+            if (document.getElementById('show-more-btn')) {
+                updateShowMoreButton();
+            }
+        });
+
+        // Don't reset on DOMContentLoaded - let window.load handle it
+        // This prevents premature resetting before server-rendered results appear
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOMContentLoaded - checking for results, window flags:', {
+                hasSingleResult: window.hasSingleResult,
+                preventFormReset: window.preventFormReset
+            }); // Debug
+            
+            // Check flags FIRST - if set, do NOT reset
+            if (window.hasSingleResult === true || window.preventFormReset === true ||
+                (document.body && document.body.getAttribute('data-has-single-result') === 'true')) {
+                console.log('DOMContentLoaded: Flags indicate results exist, hiding loading, NOT resetting'); // Debug
+                hideLoading();
+                return; // Exit early
+            }
+            
+            // Just hide loading if results exist, don't reset
+            const hasResults = document.querySelector('[data-has-results="true"]') || 
+                              document.querySelector('#single-result-display') || 
+                              document.querySelector('.results-header') ||
+                              document.querySelector('#result-text-display');
+            if (hasResults) {
+                console.log('DOMContentLoaded: Results found in DOM, hiding loading, setting flags, NOT resetting'); // Debug
+                // Set flags to prevent any resets
+                window.hasSingleResult = true;
+                window.preventFormReset = true;
+                if (document.body) {
+                    document.body.setAttribute('data-has-single-result', 'true');
+                }
+                hideLoading();
+            }
+        });
+
+        // Don't reset on pageshow either - let the main load handler deal with it
+        window.addEventListener('pageshow', function(event) {
+            // Only check, don't reset - the window.load handler will take care of it
+            console.log('pageshow event - will let window.load handle reset'); // Debug
+        });
+
+        function resetForm() {
+            // CRITICAL: Check for results BEFORE doing anything else
+            // Multiple fail-safe checks to prevent clearing results
+            
+            console.log('resetForm() called - checking for results...');
+            
+            // 1. Check window flags FIRST (set at top of body if results exist)
+            if (window.hasSingleResult === true || 
+                window.preventFormReset === true ||
+                window._singleResultRendered === true) {
+                console.log('resetForm() BLOCKED by window flags', {
+                    hasSingleResult: window.hasSingleResult,
+                    preventFormReset: window.preventFormReset,
+                    _singleResultRendered: window._singleResultRendered
+                });
+                return; // EXIT NOW - DO NOT CLEAR
+            }
+            
+            // 2. Check body attributes
+            if (document.body) {
+                const hasAttr = document.body.getAttribute('data-has-single-result') === 'true' ||
+                               document.body.getAttribute('data-result-rendered') === 'true';
+                if (hasAttr) {
+                    console.log('resetForm() BLOCKED by body attributes');
+                    return; // EXIT NOW - DO NOT CLEAR
+                }
+            }
+            
+            // 3. Check for result elements by ID (fastest DOM check)
+            const resultCard = document.getElementById('single-result-card');
+            const resultDisplay = document.getElementById('single-result-display');
+            const resultText = document.getElementById('result-text-display');
+            if (resultCard || resultDisplay || resultText) {
+                console.log('resetForm() BLOCKED - result elements found in DOM', {
+                    resultCard: !!resultCard,
+                    resultDisplay: !!resultDisplay,
+                    resultText: !!resultText
+                });
+                // Set flags to prevent future calls
+                try {
+                    window.hasSingleResult = true;
+                    window.preventFormReset = true;
+                } catch(e) {}
+                return; // EXIT NOW - DO NOT CLEAR
+            }
+            
+            // 4. Check for any result elements
+            const hasResults = document.querySelector('[data-has-results="true"]') ||
+                              document.querySelector('.results-header') ||
+                              document.querySelector('.result-card');
+            if (hasResults) {
+                console.log('resetForm() BLOCKED - results found via querySelector');
+                try {
+                    window.hasSingleResult = true;
+                    window.preventFormReset = true;
+                } catch(e) {}
+                return; // EXIT NOW - DO NOT CLEAR
+            }
+            
+            // 5. Final check - result text content
+            const textEl = document.querySelector('#result-text-display');
+            if (textEl && textEl.textContent && textEl.textContent.trim().length > 0) {
+                console.log('resetForm() BLOCKED - result text content found:', textEl.textContent.substring(0, 50));
+                try {
+                    window.hasSingleResult = true;
+                    window.preventFormReset = true;
+                } catch(e) {}
+                return; // EXIT NOW - DO NOT CLEAR
+            }
+            
+            // ALL checks passed - safe to reset (no results found)
+            console.log('resetForm() - No results found anywhere, proceeding with reset');
+            
+            // Reset all text inputs with multiple methods to ensure clearing
+            const textInputs = document.querySelectorAll('input[type="text"]');
+            textInputs.forEach(input => {
+                input.value = '';
+                input.defaultValue = '';
+                input.classList.remove('valid', 'invalid');
+                if (input.setAttribute) {
+                    input.removeAttribute('value');
+                }
+                // Clear field status
+                const fieldId = input.id;
+                updateFieldStatus(fieldId, null);
+                // Hide error messages
+                const errorDiv = document.getElementById('error-' + fieldId);
+                if (errorDiv) errorDiv.style.display = 'none';
+            });
+            
+            // Hide validation summary
+            const summaryDiv = document.getElementById('form-validation-summary');
+            if (summaryDiv) summaryDiv.style.display = 'none';
+            
+            // Reset file input - use form reset method
+            const fileInput = document.getElementById('csv_file');
+            if (fileInput) {
+                // Clear the value
+                fileInput.value = '';
+                // Reset by creating a new empty file input (clears browser cache)
+                try {
+                    fileInput.type = 'text';
+                    fileInput.type = 'file';
+                } catch(e) {
+                    // Fallback: just clear value
+                }
+                
+                const fileLabel = document.getElementById('file-name');
+                if (fileLabel) {
+                    fileLabel.style.display = 'none';
+                    fileLabel.textContent = '';
+                }
+            }
+            
+            // Reset filter and sort selects if they exist
+            const filterSelect = document.getElementById('filter-status');
+            if (filterSelect) {
+                filterSelect.value = 'all';
+                filterSelect.selectedIndex = 0;
+                // Re-apply filter to reset table view
+                setTimeout(() => {
+                    if (typeof filterTable === 'function') {
+                        filterTable();
+                    }
+                }, 100);
+            }
+            
+            const sortSelect = document.getElementById('sort-by');
+            if (sortSelect) {
+                sortSelect.value = 'time';
+                sortSelect.selectedIndex = 0;
+            }
+            
+            // Clear any form data from browser cache
+            if (document.forms && document.forms.length > 0) {
+                document.forms[0].reset();
+            }
+        }
+
+        // Helper Functions
+        function clearFileInput() {
+            const fileInput = document.getElementById('csv_file');
+            if (fileInput) {
+                fileInput.value = '';
+                const fileLabel = document.getElementById('file-name');
+                if (fileLabel) {
+                    fileLabel.style.display = 'none';
+                    fileLabel.textContent = '';
+                }
+                showNotification('File cleared', 'success');
+            }
+        }
+
+        function fillSampleData() {
+            // Fill with realistic sample data
+            const sampleData = {
+                'Time': '123456',
+                'Amount': '149.62',
+                'V1': '-1.359807134',
+                'V2': '-0.072781173',
+                'V3': '2.536346738',
+                'V4': '1.378155224',
+                'V5': '-0.338261777',
+                'V6': '0.462388044',
+                'V7': '0.239598554',
+                'V8': '0.098697901',
+                'V9': '0.36378697',
+                'V10': '0.090794172',
+                'V11': '-0.551599533',
+                'V12': '-0.617800856',
+                'V13': '-0.991389847',
+                'V14': '-0.311169354',
+                'V15': '1.468176972',
+                'V16': '-0.470400525',
+                'V17': '0.207971242',
+                'V18': '0.02579058',
+                'V19': '0.40399296',
+                'V20': '0.251412098',
+                'V21': '-0.018306778',
+                'V22': '0.277837576',
+                'V23': '-0.11047391',
+                'V24': '0.066928075',
+                'V25': '0.128539358',
+                'V26': '-0.189114844',
+                'V27': '0.133558377',
+                'V28': '-0.021053053'
+            };
+
+            Object.keys(sampleData).forEach(key => {
+                const input = document.getElementById(key);
+                if (input) {
+                    input.value = sampleData[key];
+                    input.classList.add('valid');
+                    updateFieldStatus(key, true);
+                    const errorDiv = document.getElementById('error-' + key);
+                    if (errorDiv) errorDiv.style.display = 'none';
+                }
+            });
+
+            validateFormInputs();
+            showNotification('Sample data filled', 'success');
+        }
+
+        function clearAllInputs() {
+            // Don't clear if results are present - user might want to keep results visible
+            if (window.hasSingleResult === true || window.preventFormReset === true) {
+                console.log('clearAllInputs: Results present, only clearing inputs, keeping results'); // Debug
+            }
+            
+            const textInputs = document.querySelectorAll('#single-form-grid input[type="text"]');
+            textInputs.forEach(input => {
+                input.value = '';
+                input.classList.remove('valid', 'invalid');
+                const fieldId = input.id;
+                updateFieldStatus(fieldId, null);
+                const errorDiv = document.getElementById('error-' + fieldId);
+                if (errorDiv) errorDiv.style.display = 'none';
+            });
+            const summaryDiv = document.getElementById('form-validation-summary');
+            if (summaryDiv) summaryDiv.style.display = 'none';
+            showNotification('All fields cleared', 'info');
+        }
+
+        function validateInput(input) {
+            const value = input.value.trim();
+            const fieldId = input.id;
+            let isValid = false;
+            let errorMsg = '';
+
+            if (!value) {
+                errorMsg = 'This field is required';
+            } else {
+                const numValue = parseFloat(value);
+                if (isNaN(numValue)) {
+                    errorMsg = 'Must be a valid number';
+                } else {
+                    isValid = true;
+                }
+            }
+
+            input.classList.toggle('valid', isValid);
+            input.classList.toggle('invalid', !isValid && value);
+            
+            updateFieldStatus(fieldId, isValid ? true : (value ? false : null));
+            
+            const errorDiv = document.getElementById('error-' + fieldId);
+            if (errorDiv) {
+                if (errorMsg) {
+                    errorDiv.textContent = errorMsg;
+                    errorDiv.style.display = 'block';
+                } else {
+                    errorDiv.style.display = 'none';
+                }
+            }
+
+            return isValid;
+        }
+
+        function updateFieldStatus(fieldId, status) {
+            const statusSpan = document.getElementById('status-' + fieldId);
+            if (statusSpan) {
+                statusSpan.className = 'field-status';
+                if (status === true) {
+                    statusSpan.classList.add('valid');
+                } else if (status === false) {
+                    statusSpan.classList.add('invalid');
+                }
+            }
+        }
+
+        function validateFormInputs() {
+            const inputs = document.querySelectorAll('#single-form-grid input[type="text"]');
+            let validCount = 0;
+            let invalidCount = 0;
+            let emptyCount = 0;
+
+            inputs.forEach(input => {
+                const isValid = validateInput(input);
+                if (input.value.trim()) {
+                    if (isValid) validCount++;
+                    else invalidCount++;
+                } else {
+                    emptyCount++;
+                }
+            });
+
+            const summaryDiv = document.getElementById('form-validation-summary');
+            const statusText = document.getElementById('validation-status-text');
+            
+            if (summaryDiv && statusText) {
+                summaryDiv.style.display = 'block';
+                if (emptyCount === inputs.length) {
+                    statusText.innerHTML = '<span style="color: #718096;">No data entered</span>';
+                    summaryDiv.style.background = 'rgba(113, 128, 150, 0.1)';
+                    summaryDiv.style.borderColor = '#718096';
+                } else if (invalidCount > 0) {
+                    statusText.innerHTML = `<span style="color: #EF4444;">${invalidCount} invalid field(s), ${validCount} valid</span>`;
+                    summaryDiv.style.background = 'rgba(239, 68, 68, 0.1)';
+                    summaryDiv.style.borderColor = '#EF4444';
+                } else if (emptyCount > 0) {
+                    statusText.innerHTML = `<span style="color: #F59E0B;">${emptyCount} field(s) missing, ${validCount} valid</span>`;
+                    summaryDiv.style.background = 'rgba(245, 158, 11, 0.1)';
+                    summaryDiv.style.borderColor = '#F59E0B';
+                } else {
+                    statusText.innerHTML = `<span style="color: #10B981;">All ${validCount} fields valid ✓</span>`;
+                    summaryDiv.style.background = 'rgba(16, 185, 129, 0.1)';
+                    summaryDiv.style.borderColor = '#10B981';
+                }
+            }
+        }
+
+        function validateSingleForm(event) {
+            console.log('validateSingleForm called'); // Debug
+            const inputs = document.querySelectorAll('#single-form-grid input[type="text"]');
+            console.log('Found inputs:', inputs.length); // Debug
+            let emptyFields = [];
+
+            // First check all fields have values
+            inputs.forEach((input, index) => {
+                if (!input.value.trim()) {
+                    emptyFields.push({input: input, index: index + 1});
+                }
+            });
+
+            // If any fields are empty, don't proceed
+            if (emptyFields.length > 0) {
+                console.log('Validation failed: empty fields:', emptyFields.length); // Debug
+                event.preventDefault();
+                event.stopPropagation();
+                validateFormInputs();
+                showNotification(`Please fill all ${emptyFields.length} empty field(s)`, 'error');
+                // Scroll to first empty field
+                if (emptyFields[0] && emptyFields[0].input) {
+                    emptyFields[0].input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    emptyFields[0].input.focus();
+                }
+                return false;
+            }
+
+            // Now validate that all fields contain valid numbers
+            let invalidFields = [];
+            inputs.forEach((input, index) => {
+                const value = input.value.trim();
+                if (value) {
+                    const numValue = parseFloat(value);
+                    if (isNaN(numValue)) {
+                        invalidFields.push({input: input, index: index + 1});
+                        validateInput(input); // This will mark it as invalid
+                    } else {
+                        validateInput(input); // This will mark it as valid
+                    }
+                }
+            });
+
+            if (invalidFields.length > 0) {
+                console.log('Validation failed: invalid numbers:', invalidFields.length); // Debug
+                event.preventDefault();
+                event.stopPropagation();
+                validateFormInputs();
+                showNotification(`Please enter valid numbers in ${invalidFields.length} field(s)`, 'error');
+                // Scroll to first invalid field
+                if (invalidFields[0] && invalidFields[0].input) {
+                    invalidFields[0].input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    invalidFields[0].input.focus();
+                }
+                return false;
+            }
+
+            // All validations passed - allow form submission
+            console.log('Validation passed, submitting form'); // Debug
+            showLoading('Analyzing transaction...');
+            return true;
+        }
+
+        function showLoading(message) {
+            const overlay = document.getElementById('loading-overlay');
+            if (overlay) {
+                const text = overlay.querySelector('.loading-text');
+                if (text) text.textContent = message;
+                overlay.style.display = 'flex';
+            }
+        }
+
+        function hideLoading() {
+            const overlay = document.getElementById('loading-overlay');
+            if (overlay) {
+                overlay.style.opacity = '0';
+                overlay.style.transition = 'opacity 0.3s ease';
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                }, 300);
+            }
+            // Also restore button text
+            const singleBtnText = document.getElementById('single-analyze-btn-text');
+            const singleBtnLoader = document.getElementById('single-analyze-btn-loader');
+            if (singleBtnText) singleBtnText.style.display = 'inline';
+            if (singleBtnLoader) singleBtnLoader.style.display = 'none';
+            
+            const batchBtnText = document.getElementById('analyze-btn-text');
+            const batchBtnLoader = document.getElementById('analyze-btn-loader');
+            if (batchBtnText) batchBtnText.style.display = 'inline';
+            if (batchBtnLoader) batchBtnLoader.style.display = 'none';
+        }
+
+        function showNotification(message, type = 'info') {
+            // Create notification element
+            const notification = document.createElement('div');
+            const bgColor = type === 'success' ? '#10B981' : type === 'error' ? '#EF4444' : '#D4AF37';
+            notification.style.cssText = `
+                position: fixed;
+                top: 100px;
+                right: 20px;
+                background: ${bgColor};
+                color: white;
+                padding: 15px 25px;
+                border-radius: 8px;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+                z-index: 10000;
+                animation: slideInRight 0.3s ease;
+                max-width: 350px;
+                font-weight: 500;
+            `;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOutRight 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // Add CSS for notification animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideInRight {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOutRight {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Show loading on form submit
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const action = e.submitter?.getAttribute('value');
+            if (action === 'predict_csv') {
+                const fileInput = document.getElementById('csv_file');
+                if (fileInput?.files.length > 0) {
+                    showLoading('Analyzing transactions...');
+                    const btnText = document.getElementById('analyze-btn-text');
+                    const btnLoader = document.getElementById('analyze-btn-loader');
+                    if (btnText) btnText.style.display = 'none';
+                    if (btnLoader) btnLoader.style.display = 'inline';
+                }
+            } else if (action === 'predict_single') {
+                // Only show loading if validation passes
+                // The validateSingleForm function already handles validation
+                // If form reaches here, validation passed, so show loading
+                showLoading('Analyzing transaction...');
+                const btnText = document.getElementById('single-analyze-btn-text');
+                const btnLoader = document.getElementById('single-analyze-btn-loader');
+                if (btnText) btnText.style.display = 'none';
+                if (btnLoader) btnLoader.style.display = 'inline';
+            }
+        });
+
+        // NOTE: The main window.load handler above handles reset prevention and scrolling
+        // This secondary handler is removed to avoid conflicts
+
+        // Also hide loading immediately on DOMContentLoaded if results are present
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if we have results (single_prediction or batch_predictions)
+            const hasSingleResult = document.querySelector('#single-result-display');
+            const hasBatchResults = document.querySelector('.results-header');
+            if (hasSingleResult || hasBatchResults) {
+                console.log('Results detected, hiding loading'); // Debug
+                hideLoading();
+                // Prevent any reset if results exist
+                // Small delay to ensure DOM is ready, then scroll to results
+                setTimeout(() => {
+                    if (hasSingleResult) {
+                        console.log('Scrolling to single result'); // Debug
+                        hasSingleResult.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    } else if (hasBatchResults) {
+                        console.log('Scrolling to batch results'); // Debug
+                        hasBatchResults.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }, 300);
+            } else {
+                console.log('No results found on page load'); // Debug
+            }
+        });
+
+        function scrollToForm() {
+            setTimeout(() => {
+                const form = document.querySelector('#single-form-grid');
+                if (form) {
+                    window.scrollTo({
+                        top: form.offsetTop - 100,
+                        behavior: 'smooth'
+                    });
+                }
+            }, 100);
+        }
+
+        // Auto-validate form on input
+        document.addEventListener('DOMContentLoaded', function() {
+            const inputs = document.querySelectorAll('#single-form-grid input[type="text"]');
+            inputs.forEach(input => {
+                input.addEventListener('input', function() {
+                    if (this.value.trim()) {
+                        validateInput(this);
+                    } else {
+                        this.classList.remove('valid', 'invalid');
+                        updateFieldStatus(this.id, null);
+                    }
+                });
+            });
+            
+            // Handle analyze another button click
+            const analyzeAnotherBtn = document.querySelector('.analyze-another-btn');
+            if (analyzeAnotherBtn) {
+                analyzeAnotherBtn.addEventListener('click', function() {
+                    const href = this.getAttribute('data-href');
+                    if (href) {
+                        window.location.href = href;
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
